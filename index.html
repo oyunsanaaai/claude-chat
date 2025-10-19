@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude AI - Миний чат</title>
+  <title>Claude AI Чат</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -175,8 +175,8 @@
       text-align: center;
     }
     .info-box { 
-      background: #fff3cd; 
-      border: 2px solid #ffc107; 
+      background: #e3f2fd; 
+      border: 2px solid #2196f3; 
       padding: 15px; 
       border-radius: 10px; 
       margin-bottom: 20px; 
@@ -207,8 +207,6 @@
       margin-bottom: 25px; 
       line-height: 1.6;
     }
-    .hint a { color: #667eea; text-decoration: none; font-weight: 600; }
-    .hint a:hover { text-decoration: underline; }
     .modal-btns { 
       display: flex; 
       gap: 15px; 
@@ -237,31 +235,28 @@
 </head>
 <body>
   <div class="app">
-    <!-- Header -->
     <div class="header">
       <h1>🤖 Claude AI</h1>
       <div class="header-right">
         <div class="status" id="status">⚙️ Тохируулах</div>
-        <button class="btn-header" onclick="clearAll()" title="Цэвэрлэх">🗑️</button>
-        <button class="btn-header" onclick="showSettings()" title="Тохиргоо">⚙️</button>
+        <button class="btn-header" onclick="clearAll()">🗑️</button>
+        <button class="btn-header" onclick="showSettings()">⚙️</button>
       </div>
     </div>
 
-    <!-- Chat -->
     <div class="chat" id="chat">
       <div class="welcome" id="welcome">
         <div class="welcome-icon">💬</div>
         <h2>Claude AI-тай чатлах</h2>
-        <p>Эхлэхийн тулд API Key оруулна уу</p>
+        <p>Cloudflare Worker URL оруулна уу</p>
       </div>
     </div>
 
-    <!-- Input -->
     <div class="input-area">
       <div class="input-box">
         <textarea 
           id="input" 
-          placeholder="Асуулт асуугаарай... (Shift+Enter шинэ мөр)"
+          placeholder="Асуулт асуугаарай..."
           rows="1"
           onkeydown="checkEnter(event)"
         ></textarea>
@@ -270,45 +265,40 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
   <div class="modal" id="modal">
     <div class="modal-box">
-      <h2>🔐 API Key</h2>
+      <h2>⚙️ Тохиргоо</h2>
       
       <div class="info-box">
-        ⚠️ <strong>Анхаар:</strong> API Key зөвхөн таны компьютер дээр хадгалагдана. 
-        Хэн ч харахгүй, аюулгүй.
+        💡 <strong>Cloudflare Worker URL</strong> хэрэгтэй.<br>
+        5 минутын заавар: Миний өмнөх мессежийг үзнэ үү
       </div>
 
-      <label>Claude API Key</label>
+      <label>Cloudflare Worker URL</label>
       <input 
-        type="password" 
-        id="apiInput" 
-        placeholder="sk-ant-api03-..."
+        type="text" 
+        id="workerInput" 
+        placeholder="https://claude-proxy.YOUR-NAME.workers.dev"
       />
 
       <div class="hint">
-        API Key авах:<br>
-        → <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a> нээнэ<br>
-        → "Create Key" дарна<br>
-        → Хуулж энд буулгана
+        Cloudflare Worker үүсгээд энд URL-аа оруулна
       </div>
 
       <div class="modal-btns">
-        <button class="modal-btn save" onclick="saveKey()">✓ Хадгалах</button>
+        <button class="modal-btn save" onclick="saveWorker()">✓ Хадгалах</button>
         <button class="modal-btn cancel" onclick="hideSettings()">Хаах</button>
       </div>
     </div>
   </div>
 
   <script>
-    let key = localStorage.getItem('my_claude_key') || '';
-    let msgs = JSON.parse(localStorage.getItem('my_claude_msgs') || '[]');
+    let workerUrl = localStorage.getItem('worker_url') || '';
+    let msgs = JSON.parse(localStorage.getItem('claude_msgs') || '[]');
     let loading = false;
 
-    // Load
     window.onload = () => {
-      if (key) {
+      if (workerUrl) {
         document.getElementById('status').textContent = '🟢 Бэлэн';
         if (msgs.length > 0) {
           document.getElementById('welcome').style.display = 'none';
@@ -321,28 +311,28 @@
 
     function showSettings() {
       document.getElementById('modal').classList.add('show');
-      document.getElementById('apiInput').value = key;
+      document.getElementById('workerInput').value = workerUrl;
     }
 
     function hideSettings() {
-      if (key) document.getElementById('modal').classList.remove('show');
+      if (workerUrl) document.getElementById('modal').classList.remove('show');
     }
 
-    function saveKey() {
-      const val = document.getElementById('apiInput').value.trim();
+    function saveWorker() {
+      const val = document.getElementById('workerInput').value.trim();
       if (!val) {
-        alert('❌ API Key оруулна уу!');
+        alert('❌ Worker URL оруулна уу!');
         return;
       }
-      if (!val.startsWith('sk-ant-')) {
-        alert('❌ Claude API Key "sk-ant-" гэж эхлэх ёстой!');
+      if (!val.startsWith('https://')) {
+        alert('❌ https:// гэж эхлэх ёстой!');
         return;
       }
-      key = val;
-      localStorage.setItem('my_claude_key', key);
+      workerUrl = val;
+      localStorage.setItem('worker_url', workerUrl);
       document.getElementById('status').textContent = '🟢 Бэлэн';
       hideSettings();
-      alert('✅ Бэлэн болсон! Одоо чатлаж болно.');
+      alert('✅ Хадгалагдлаа!');
     }
 
     function checkEnter(e) {
@@ -358,8 +348,8 @@
       
       if (!txt || loading) return;
       
-      if (!key) {
-        alert('⚠️ Эхлээд API Key оруулна уу!');
+      if (!workerUrl) {
+        alert('⚠️ Эхлээд Worker URL оруулна уу!');
         showSettings();
         return;
       }
@@ -374,16 +364,12 @@
       render();
 
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch(workerUrl, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': key,
-            'anthropic-version': '2023-06-01'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 4096,
             messages: msgs
           })
         });
@@ -391,11 +377,11 @@
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error?.message || 'Алдаа гарлаа');
+          throw new Error(data.error || 'Алдаа гарлаа');
         }
 
         msgs.push({ role: 'assistant', content: data.content[0].text });
-        localStorage.setItem('my_claude_msgs', JSON.stringify(msgs));
+        localStorage.setItem('claude_msgs', JSON.stringify(msgs));
         render();
 
       } catch (err) {
@@ -437,8 +423,8 @@
     function clearAll() {
       if (confirm('Бүх мессежийг устгах уу?')) {
         msgs = [];
-        localStorage.removeItem('my_claude_msgs');
-        document.getElementById('chat').innerHTML = '<div class="welcome" id="welcome"><div class="welcome-icon">💬</div><h2>Claude AI</h2><p>Асуулт асуугаарай</p></div>';
+        localStorage.removeItem('claude_msgs');
+        document.getElementById('chat').innerHTML = '<div class="welcome" id="welcome"><div class="welcome-icon">💬</div><h2>Claude AI</h2></div>';
       }
     }
   </script>
