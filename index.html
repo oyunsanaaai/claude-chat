@@ -4,427 +4,304 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claude AI Чат</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .app { 
-      width: 100%; 
-      max-width: 900px; 
-      background: white; 
-      border-radius: 20px; 
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      height: 90vh;
-    }
-    .header { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-      color: white; 
-      padding: 20px 30px; 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header h1 { font-size: 24px; font-weight: 700; }
-    .header-right { display: flex; gap: 10px; align-items: center; }
-    .status { 
-      background: rgba(255,255,255,0.2); 
-      padding: 5px 15px; 
-      border-radius: 20px; 
-      font-size: 14px; 
-    }
-    .btn-header { 
-      background: rgba(255,255,255,0.2); 
-      border: none; 
-      color: white; 
-      padding: 8px 12px; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      font-size: 18px;
-      transition: background 0.2s;
-    }
-    .btn-header:hover { background: rgba(255,255,255,0.3); }
-    .chat { 
-      flex: 1; 
-      overflow-y: auto; 
-      padding: 30px; 
-      background: #f8f9fa; 
-    }
-    .welcome { 
-      text-align: center; 
-      padding: 60px 20px; 
-      color: #666; 
-    }
-    .welcome-icon { font-size: 80px; margin-bottom: 20px; }
-    .welcome h2 { font-size: 28px; margin-bottom: 10px; color: #333; }
-    .msg { 
-      display: flex; 
-      gap: 15px; 
-      margin-bottom: 20px; 
-      animation: slideUp 0.3s ease-out; 
-    }
-    @keyframes slideUp { 
-      from { opacity: 0; transform: translateY(15px); } 
-      to { opacity: 1; transform: translateY(0); } 
-    }
-    .msg.user { flex-direction: row-reverse; }
-    .avatar { 
-      width: 40px; 
-      height: 40px; 
-      border-radius: 50%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .msg.user .avatar { background: linear-gradient(135deg, #667eea, #764ba2); }
-    .msg.assistant .avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
-    .bubble { 
-      max-width: 70%; 
-      padding: 15px 20px; 
-      border-radius: 18px; 
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-    .msg.user .bubble { 
-      background: linear-gradient(135deg, #667eea, #764ba2); 
-      color: white; 
-    }
-    .msg.assistant .bubble { 
-      background: white; 
-      color: #333; 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-    }
-    .input-area { 
-      padding: 20px 30px; 
-      background: white; 
-      border-top: 1px solid #e0e0e0; 
-    }
-    .input-box { 
-      display: flex; 
-      gap: 15px; 
-      align-items: flex-end; 
-    }
-    textarea { 
-      flex: 1; 
-      padding: 15px; 
-      border: 2px solid #e0e0e0; 
-      border-radius: 12px; 
-      font-size: 16px; 
-      font-family: inherit; 
-      resize: none;
-      max-height: 120px;
-      transition: border-color 0.2s;
-    }
-    textarea:focus { 
-      outline: none; 
-      border-color: #667eea; 
-    }
-    .send-btn { 
-      padding: 15px 25px; 
-      background: linear-gradient(135deg, #667eea, #764ba2); 
-      color: white; 
-      border: none; 
-      border-radius: 12px; 
-      font-size: 20px; 
-      cursor: pointer; 
-      transition: transform 0.2s;
-    }
-    .send-btn:hover { transform: scale(1.05); }
-    .send-btn:disabled { 
-      background: #ccc; 
-      cursor: not-allowed; 
-      transform: none;
-    }
-    .modal { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      bottom: 0; 
-      background: rgba(0,0,0,0.6); 
-      align-items: center; 
-      justify-content: center; 
-      z-index: 1000;
-      padding: 20px;
-    }
-    .modal.show { display: flex; }
-    .modal-box { 
-      background: white; 
-      padding: 40px; 
-      border-radius: 20px; 
-      max-width: 500px; 
-      width: 100%; 
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
-    }
-    .modal-box h2 { 
-      margin-bottom: 20px; 
-      font-size: 28px; 
-      text-align: center;
-    }
-    .info-box { 
-      background: #e3f2fd; 
-      border: 2px solid #2196f3; 
-      padding: 15px; 
-      border-radius: 10px; 
-      margin-bottom: 20px; 
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .modal-box label { 
-      display: block; 
-      margin-bottom: 10px; 
-      font-weight: 600; 
-      color: #555; 
-    }
-    .modal-box input { 
-      width: 100%; 
-      padding: 15px; 
-      border: 2px solid #e0e0e0; 
-      border-radius: 10px; 
-      font-size: 16px; 
-      margin-bottom: 10px;
-    }
-    .modal-box input:focus { 
-      outline: none; 
-      border-color: #667eea; 
-    }
-    .hint { 
-      font-size: 13px; 
-      color: #666; 
-      margin-bottom: 25px; 
-      line-height: 1.6;
-    }
-    .modal-btns { 
-      display: flex; 
-      gap: 15px; 
-    }
-    .modal-btn { 
-      flex: 1; 
-      padding: 15px; 
-      border: none; 
-      border-radius: 10px; 
-      font-size: 16px; 
-      font-weight: 600; 
-      cursor: pointer; 
-      transition: all 0.2s;
-    }
-    .modal-btn.save { 
-      background: linear-gradient(135deg, #667eea, #764ba2); 
-      color: white; 
-    }
-    .modal-btn.save:hover { transform: translateY(-2px); }
-    .modal-btn.cancel { 
-      background: #e0e0e0; 
-      color: #333; 
-    }
-    .modal-btn.cancel:hover { background: #d0d0d0; }
+    .message-enter { animation: fadeIn 0.3s ease-out; }
+    .dark { color-scheme: dark; }
+    * { box-sizing: border-box; }
   </style>
 </head>
-<body>
-  <div class="app">
-    <div class="header">
-      <h1>🤖 Claude AI</h1>
-      <div class="header-right">
-        <div class="status" id="status">⚙️ Тохируулах</div>
-        <button class="btn-header" onclick="clearAll()">🗑️</button>
-        <button class="btn-header" onclick="showSettings()">⚙️</button>
+<body class="bg-gray-50">
+  <div id="app">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between max-w-5xl mx-auto">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-2xl">
+            🤖
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-gray-900">Claude AI Чат</h1>
+            <p class="text-xs text-gray-600" id="status">🔴 API Key хэрэгтэй</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="toggleTheme()" class="p-2 hover:bg-gray-100 rounded-full" id="themeBtn">
+            🌙
+          </button>
+          <button onclick="clearChat()" class="p-2 hover:bg-gray-100 rounded-full" title="Цэвэрлэх">
+            🗑️
+          </button>
+          <button onclick="openSettings()" class="p-2 hover:bg-gray-100 rounded-full" title="Тохиргоо">
+            ⚙️
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="chat" id="chat">
-      <div class="welcome" id="welcome">
-        <div class="welcome-icon">💬</div>
-        <h2>Claude AI-тай чатлах</h2>
-        <p>Cloudflare Worker URL оруулна уу</p>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-4 text-gray-900">⚙️ Тохиргоо</h2>
+        <label class="block mb-2 text-gray-600 font-semibold">Claude API Key</label>
+        <input 
+          type="password" 
+          id="apiKeyInput"
+          placeholder="sk-ant-api03-..."
+          class="w-full px-4 py-3 rounded-lg bg-gray-100 text-gray-900 mb-2 outline-none border-2 border-transparent focus:border-purple-500"
+        />
+        <p class="text-xs text-gray-500 mb-4">
+          📍 <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-purple-500 hover:underline">console.anthropic.com</a>-с API Key авна
+        </p>
+        <div class="flex gap-2">
+          <button onclick="saveApiKey()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-semibold">
+            Хадгалах
+          </button>
+          <button onclick="closeSettings()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 py-3 rounded-lg font-semibold">
+            Хаах
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="input-area">
-      <div class="input-box">
-        <textarea 
-          id="input" 
-          placeholder="Асуулт асуугаарай..."
-          rows="1"
-          onkeydown="checkEnter(event)"
-        ></textarea>
-        <button class="send-btn" id="sendBtn" onclick="send()">📤</button>
+    <!-- Messages -->
+    <div id="messages" class="h-[calc(100vh-200px)] overflow-y-auto px-4 py-6 bg-gray-50">
+      <div class="max-w-4xl mx-auto space-y-6">
+        <div class="text-center py-12" id="emptyState">
+          <div class="text-6xl mb-4">🤖</div>
+          <h2 class="text-2xl font-bold mb-2 text-gray-900">Claude AI-тай чатлах</h2>
+          <p class="text-gray-600 mb-6">Асуулт асуугаарай</p>
+          <button onclick="openSettings()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold">
+            🔑 API Key оруулах
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="modal" id="modal">
-    <div class="modal-box">
-      <h2>⚙️ Тохиргоо</h2>
-      
-      <div class="info-box">
-        💡 <strong>Cloudflare Worker URL</strong> хэрэгтэй.<br>
-        5 минутын заавар: Миний өмнөх мессежийг үзнэ үү
-      </div>
-
-      <label>Cloudflare Worker URL</label>
-      <input 
-        type="text" 
-        id="workerInput" 
-        placeholder="https://claude-proxy.YOUR-NAME.workers.dev"
-      />
-
-      <div class="hint">
-        Cloudflare Worker үүсгээд энд URL-аа оруулна
-      </div>
-
-      <div class="modal-btns">
-        <button class="modal-btn save" onclick="saveWorker()">✓ Хадгалах</button>
-        <button class="modal-btn cancel" onclick="hideSettings()">Хаах</button>
+    <!-- Input -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4">
+      <div class="max-w-4xl mx-auto flex gap-3">
+        <input 
+          type="text" 
+          id="messageInput"
+          placeholder="Мессеж бичих..."
+          class="flex-1 px-5 py-4 rounded-xl bg-gray-100 text-gray-900 outline-none border-2 border-transparent focus:border-purple-500"
+          onkeypress="handleKeyPress(event)"
+        />
+        <button onclick="sendMessage()" id="sendBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-4 rounded-xl font-semibold">
+          📤 Илгээх
+        </button>
       </div>
     </div>
   </div>
 
   <script>
-    let workerUrl = localStorage.getItem('worker_url') || '';
-    let msgs = JSON.parse(localStorage.getItem('claude_msgs') || '[]');
+    let messages = [];
+    let apiKey = '';
+    let theme = 'light';
     let loading = false;
 
-    window.onload = () => {
-      if (workerUrl) {
-        document.getElementById('status').textContent = '🟢 Бэлэн';
-        if (msgs.length > 0) {
-          document.getElementById('welcome').style.display = 'none';
-          render();
-        }
-      } else {
-        showSettings();
+    // Эхлүүлэх
+    window.onload = function() {
+      apiKey = localStorage.getItem('claude_api_key') || '';
+      theme = localStorage.getItem('claude_theme') || 'light';
+      const savedMessages = localStorage.getItem('claude_messages');
+      
+      if (savedMessages) {
+        messages = JSON.parse(savedMessages);
+        renderMessages();
       }
+      
+      if (apiKey) {
+        document.getElementById('status').textContent = '🟢 Холбогдсон';
+        document.getElementById('emptyState').style.display = 'none';
+      }
+      
+      applyTheme();
     };
 
-    function showSettings() {
-      document.getElementById('modal').classList.add('show');
-      document.getElementById('workerInput').value = workerUrl;
+    // Загвар солих
+    function toggleTheme() {
+      theme = theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('claude_theme', theme);
+      applyTheme();
     }
 
-    function hideSettings() {
-      if (workerUrl) document.getElementById('modal').classList.remove('show');
+    function applyTheme() {
+      const isDark = theme === 'dark';
+      document.body.className = isDark ? 'bg-gray-900' : 'bg-gray-50';
+      document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+      
+      // Бүх элементүүдийг шинэчлэх
+      const elements = document.querySelectorAll('.bg-white, .bg-gray-50, .text-gray-900, .text-gray-600');
+      elements.forEach(el => {
+        if (isDark) {
+          el.classList.add('dark:bg-gray-800', 'dark:text-gray-100');
+        }
+      });
     }
 
-    function saveWorker() {
-      const val = document.getElementById('workerInput').value.trim();
-      if (!val) {
-        alert('❌ Worker URL оруулна уу!');
+    // Тохиргоо
+    function openSettings() {
+      document.getElementById('settingsModal').classList.remove('hidden');
+      document.getElementById('apiKeyInput').value = apiKey;
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function saveApiKey() {
+      const input = document.getElementById('apiKeyInput').value.trim();
+      if (!input.startsWith('sk-ant-')) {
+        alert('⚠️ API Key буруу байна! "sk-ant-" гэж эхлэх ёстой.');
         return;
       }
-      if (!val.startsWith('https://')) {
-        alert('❌ https:// гэж эхлэх ёстой!');
-        return;
-      }
-      workerUrl = val;
-      localStorage.setItem('worker_url', workerUrl);
-      document.getElementById('status').textContent = '🟢 Бэлэн';
-      hideSettings();
+      apiKey = input;
+      localStorage.setItem('claude_api_key', apiKey);
+      document.getElementById('status').textContent = '🟢 Холбогдсон';
+      closeSettings();
       alert('✅ Хадгалагдлаа!');
     }
 
-    function checkEnter(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        send();
-      }
-    }
-
-    async function send() {
-      const inp = document.getElementById('input');
-      const txt = inp.value.trim();
+    // Мессеж илгээх
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const userMessage = input.value.trim();
       
-      if (!txt || loading) return;
+      if (!userMessage || loading) return;
       
-      if (!workerUrl) {
-        alert('⚠️ Эхлээд Worker URL оруулна уу!');
-        showSettings();
+      if (!apiKey) {
+        alert('⚠️ API Key оруулна уу!');
+        openSettings();
         return;
       }
 
       loading = true;
       document.getElementById('sendBtn').disabled = true;
-      document.getElementById('sendBtn').textContent = '⏳';
-      document.getElementById('welcome').style.display = 'none';
-
-      msgs.push({ role: 'user', content: txt });
-      inp.value = '';
-      render();
-
+      document.getElementById('sendBtn').innerHTML = '⏳ Илгээж байна...';
+      document.getElementById('emptyState').style.display = 'none';
+      
+      // Хэрэглэгчийн мессеж нэмэх
+      messages.push({
+        role: 'user',
+        content: userMessage,
+        timestamp: new Date().toISOString()
+      });
+      
+      input.value = '';
+      renderMessages();
+      
       try {
-        const res = await fetch(workerUrl, {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            messages: msgs
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 4096,
+            messages: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }))
           })
         });
 
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || 'Алдаа гарлаа');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'API алдаа гарлаа');
         }
 
-        msgs.push({ role: 'assistant', content: data.content[0].text });
-        localStorage.setItem('claude_msgs', JSON.stringify(msgs));
-        render();
+        const assistantMessage = data.content[0].text;
+        
+        messages.push({
+          role: 'assistant',
+          content: assistantMessage,
+          timestamp: new Date().toISOString()
+        });
+        
+        localStorage.setItem('claude_messages', JSON.stringify(messages));
+        renderMessages();
 
-      } catch (err) {
-        alert('❌ Алдаа: ' + err.message);
-        msgs.pop();
-        render();
+      } catch (error) {
+        messages.push({
+          role: 'assistant',
+          content: `❌ Алдаа: ${error.message}\n\nШалгах зүйлс:\n✓ API Key зөв эсэх\n✓ Интернет холболт\n✓ Кредит үлдэгдэл`,
+          timestamp: new Date().toISOString(),
+          error: true
+        });
+        renderMessages();
       } finally {
         loading = false;
         document.getElementById('sendBtn').disabled = false;
-        document.getElementById('sendBtn').textContent = '📤';
+        document.getElementById('sendBtn').innerHTML = '📤 Илгээх';
       }
     }
 
-    function render() {
-      const chat = document.getElementById('chat');
-      let html = '';
+    // Мессежүүдийг харуулах
+    function renderMessages() {
+      const container = document.getElementById('messages').querySelector('.space-y-6');
+      container.innerHTML = '';
       
-      msgs.forEach(m => {
-        const cls = m.role;
-        const icon = cls === 'user' ? '👤' : '🤖';
-        html += `
-          <div class="msg ${cls}">
-            <div class="avatar">${icon}</div>
-            <div class="bubble">${escape(m.content)}</div>
+      messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex gap-4 message-enter ${msg.role === 'user' ? 'flex-row-reverse' : ''}`;
+        
+        const avatarColor = msg.role === 'user' ? 'bg-blue-500' : (msg.error ? 'bg-red-500' : 'bg-purple-500');
+        const avatar = msg.role === 'user' ? '👤' : '🤖';
+        
+        msgDiv.innerHTML = `
+          <div class="w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center flex-shrink-0">
+            ${avatar}
+          </div>
+          <div class="flex-1 max-w-2xl">
+            <div class="bg-white rounded-2xl px-5 py-4 shadow-sm ${msg.error ? 'border-2 border-red-500' : ''}">
+              <div class="whitespace-pre-wrap break-words text-gray-900">${escapeHtml(msg.content)}</div>
+              <div class="text-xs text-gray-500 mt-2">
+                ${new Date(msg.timestamp).toLocaleTimeString('mn-MN')}
+              </div>
+            </div>
           </div>
         `;
+        
+        container.appendChild(msgDiv);
       });
       
-      chat.innerHTML = html;
-      chat.scrollTop = chat.scrollHeight;
+      scrollToBottom();
     }
 
-    function escape(txt) {
-      const d = document.createElement('div');
-      d.textContent = txt;
-      return d.innerHTML;
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
-    function clearAll() {
+    function scrollToBottom() {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function clearChat() {
       if (confirm('Бүх мессежийг устгах уу?')) {
-        msgs = [];
-        localStorage.removeItem('claude_msgs');
-        document.getElementById('chat').innerHTML = '<div class="welcome" id="welcome"><div class="welcome-icon">💬</div><h2>Claude AI</h2></div>';
+        messages = [];
+        localStorage.removeItem('claude_messages');
+        document.getElementById('messages').querySelector('.space-y-6').innerHTML = '';
+        document.getElementById('emptyState').style.display = 'block';
       }
     }
   </script>
