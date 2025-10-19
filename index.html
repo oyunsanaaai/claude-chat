@@ -737,5 +737,41 @@
       }
     }
   </script>
+  <script>
+const KEY = 'workerUrl';
+const DEFAULT_WORKER_URL = 'https://<ТАНЫ-WORKER>.oyunsanaa-ai.workers.dev/api/chat'; // ← ЭНД ЗӨВ URL-аа бич
+
+function getWorkerUrl() {
+  let u = localStorage.getItem(KEY);
+  if (!u) {
+    // анх удаа бол default-оо ашиглаад хадгална
+    localStorage.setItem(KEY, DEFAULT_WORKER_URL);
+    u = DEFAULT_WORKER_URL;
+  }
+  return u;
+}
+
+function resetWorkerUrl() {
+  const u = prompt('Cloudflare Worker URL (/api/chat):', localStorage.getItem(KEY) || DEFAULT_WORKER_URL);
+  if (u) localStorage.setItem(KEY, u.trim());
+  location.reload();
+}
+
+// UI дотроо “⚙️ Тохиргоо” товч нэмчих (эсвэл одоо байгаа товчтой нь холбочих)
+document.addEventListener('DOMContentLoaded', ()=>{
+  const gear = document.createElement('button');
+  gear.textContent = '⚙️ Тохиргоо';
+  gear.onclick = resetWorkerUrl;
+  document.body.appendChild(gear);
+});
+
+// fetch дуудлагад хэрэглэ:
+async function callClaude(payload){
+  const url = getWorkerUrl();
+  const r = await fetch(url, { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(payload) });
+  if (!r.ok) { alert('Worker URL буруу эсвэл API алдаа. ⚙️ дарж URL-аа шалгана уу.'); resetWorkerUrl(); return; }
+  return r;
+}
+</script>
 </body>
 </html>
